@@ -1,0 +1,33 @@
+*users
+    _id
+    name
+    email
+    passwordHash
+    token
+    state
+
+
+*state
+    _id
+    name
+
+*categories
+    _id
+    name
+    slug
+
+*ad
+    _id
+    title
+    description
+    price
+    priceNegociable: true
+    images [{url, def: true}]
+    dateCreated
+    active
+    views
+    category
+    user
+    state
+
+
