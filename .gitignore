@@ -101,6 +101,7 @@ dist
 .dynamodb/
 
 # TernJS port file
+<<<<<<< HEAD
 .tern-port
 © 2020 GitHub, Inc.
 Terms
@@ -114,3 +115,6 @@ API
 Training
 Blog
 About
+=======
+.tern-port
+>>>>>>> 99f2d8d12bc28ea06567ca76a7fcc4ac9b0e6e17
