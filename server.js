@@ -21,7 +21,6 @@ mongoose.connection.on('error', (error)=>{
     console.error('ERROR: '+error.message);
 })
 
-
 app.use(cors());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -35,23 +34,7 @@ app.listen(app.get('port'),()=>{
     console.log('Server running on port: '+app.get('port'));
 });
 
-/*
-process.on('uncaughtException', function (err) {
-    console.error((new Date).toUTCString() + ' uncaughtException:', err.message)
-    console.error(err.stack)
-    process.exit(1)
-})
 
-
-var os = require('os');
-console.log("Platform: " + os.platform());
-console.log("Architecture: " + os.arch());
-
-console.log("host: " + os.hostname());
-
-console.log("cpu " + os.cpus().length);
-
-*/
 
 
 

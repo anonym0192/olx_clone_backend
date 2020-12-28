@@ -9,10 +9,46 @@ module.exports = {
 
     getAll: async (req, res) =>{
 
-        const ads = await Ad.find();
+        const filter = {};
+        const options = {};
+
+        if(req.query.q){
+            const title = req.query.q.trim();
+            filter.title = new RegExp('^'+title, 'ig');
+        };
+
+        if(req.query.state){
+            const s = await State.findOne({name: req.query.state});
+            filter.state = s ? s._id : '';
+        }
+
+        if(req.query.cat){
+            const c = await Category.findOne({slug: req.query.cat});
+            filter.category = c ? c._id : '';
+        }
+
+        if(req.query.limit){
+           options.limit = parseInt(req.query.limit);
+        }
+
+        if(req.query.sort){
+            options.sort = {dateCreated: req.query.sort};
+        }
+
+        if(req.query.offset){
+            options.offset = parseInt(req.query.offset);
+        }
+
+        const ads = await Ad.paginate(filter, options);
+        if(!ads){
+            res.json({error: 'There was an error in database, please try again later'});
+            return;
+        }
+
+        const total = ads.total;
         const adList = [];
 
-        for(let ad of ads){
+        for(let ad of ads.docs){
             
             let user = '';
             let state = '';
@@ -30,7 +66,7 @@ module.exports = {
             adList.push({
                     id: ad.id,
                     title: ad.title,
-                    name: ad.name,
+                    description: ad.description,
                     price: ad.price,
                     priceNegotiable: ad.priceNegotiable,
                     views: ad.views,
@@ -42,7 +78,7 @@ module.exports = {
                     state: state?.name
                 });
         }
-        res.json({data: adList});
+        res.json({data: {ads: adList, total }});
     },
 
     getOne: async (req, res) =>{
@@ -148,14 +184,14 @@ module.exports = {
 
     editAction: async (req, res) =>{
 
-        if(!mongoose.Types.ObjectId.isValid(req.body.ad)){
+        if(!mongoose.Types.ObjectId.isValid(req.body.id)){
             res.json({error: 'Ad id is not valid!'});
             return;
         }
         const user = await User.findOne({token: req.body.token});
         const userId = user._id.toString();
    
-        const ad = await Ad.findById(req.body.ad);
+        const ad = await Ad.findById(req.body.id);
     
         if(!ad || (userId !== ad.user)){
             res.json({error: 'Ad id is not valid!'});
@@ -169,9 +205,9 @@ module.exports = {
         if(req.body.title){
             updates.title = req.body.title;
         }
-        if(req.body.description){
-            updates.description = req.body.description;
-        }
+
+        updates.description = req.body.description;
+        
         if(req.body.price){
             updates.price = req.body.price;
         }
@@ -192,15 +228,15 @@ module.exports = {
         }
 
         if(req.body.state){    
-            const state = await State.findById(req.body.category);
+            const state = await State.findOne({name: req.body.state});
             if(!state){
                 res.json({error: 'State is not valid!'});
                 return;
             }
-            updates.state = req.body.state;        
+            updates.state = state._id;        
         }
 
-        const newAd = await Ad.findByIdAndUpdate(req.body.ad, {$set: updates});
+        const newAd = await Ad.findByIdAndUpdate(req.body.id, {$set: updates});
         await newAd.save((err, result)=>{
             if(err){
                 console.error(err.message);

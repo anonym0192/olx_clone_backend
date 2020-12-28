@@ -7,3 +7,7 @@ exports.getIconsFullpath = (iconName) => {
     const fullpathIcon = `${process.env.BASE}/icons/${iconName}.png`;       
     return fullpathIcon;
 } 
+
+exports.errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
+    return `${msg}`;
+  };

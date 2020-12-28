@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
+
 mongoose.Promise = global.Promise;
 
 const modelSchema = mongoose.Schema({
@@ -15,6 +17,8 @@ const modelSchema = mongoose.Schema({
     user: String,
     state: String
 });
+
+modelSchema.plugin(mongoosePaginate);
 
 const modelName = "Ad";
 

@@ -48,18 +48,13 @@ module.exports = {
         }
 
         const data = matchedData(req);
-
-        if(mongoose.Types.ObjectId.isValid(data.state)){
-            const state = await State.findById(data.state);
-            if(!state){
-                res.json({error: {state: {msg: 'The state doesn\'t exist!'}}});
-                return;
-            }
-        }else{
-            res.json({error: {state: {msg: 'The state id is invalid!'}}});
+  
+        const state = await State.findOne({name: data.state});
+        if(!state){
+            res.json({error: {state: {msg: 'The state doesn\'t exist!'}}});
             return;
         }
-
+        
         const email = await User.findOne({email: data.email});
         if(email){
             res.json({error: {email: {msg: 'E-mail already exists!'}}});
@@ -74,7 +69,7 @@ module.exports = {
                             email: data.email,
                             passwordHash,
                             token,
-                            state: data.state
+                            state: state._id
                         });
         await newUser.save((err, result)=>{
             if(err){

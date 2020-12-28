@@ -3,7 +3,7 @@ const Ad = require('../models/Ad');
 const Category = require('../models/Category');
 const State = require('../models/State');
 const mongoose = require('mongoose');
-const utils = require('../utils');
+const {getImagesFullpath, getIconsFullpath, errorFormatter} = require('../utils');
 
 const {validationResult, matchedData} = require('express-validator');
 const bcrypt = require('bcrypt');
@@ -18,29 +18,40 @@ module.exports = {
         const state = await State.findById(user.state);
         const ads = await Ad.find({user: user._id.toString()});
         
-        
-
         const adList = [];
 
         for(let ad of ads ){
             const category = await Category.findById(ad.category);
-            adList.push({...ad._doc, state: state.name ,category: category.slug});
+            adList.push({
+                id: ad._id,
+                title: ad.title,
+                description: ad.description,
+                price: ad.price,
+                priceNegotiable: ad.priceNegotiable,
+                images: getImagesFullpath(ad.images),
+                dateCreated: ad.dateCreated,
+                views: ad.views,
+                state: {id: state._id , name: state.name},
+                category: { id: category._id, name: category.name, slug: category.slug}
+            });
         }
 
         const data = {
             name: user.name,
             email: user.email,
-            state: state.name,
+            state: {id: state._id, name: state.name},
             ads: adList 
         };
         res.json({data});
     },
 
     editAction: async (req, res) =>{
-        const errors = validationResult(req);
+
+        const errors = validationResult(req).formatWith(errorFormatter);
 
         if(!errors.isEmpty()){
-            res.json({error: errors.mapped()});
+            console.log(errors);
+            res.json({error: errors.array()});
             return;
         }
         const data = matchedData(req);
@@ -48,7 +59,7 @@ module.exports = {
         const updates = {};
 
         if(data.email){
-            const emailExists = await User.findOne({email: data.email});
+            const emailExists = await User.findOne({email: data.email, token: {$ne: data.token}});
             if(emailExists){
                 res.json({error: 'Email already exists! Please choose another one'});
                 return
@@ -58,18 +69,13 @@ module.exports = {
         if(data.name){
             updates.name = data.name;
         }
-        if(data.state){
-            if(mongoose.Types.ObjectId.isValid(data.state)){
-                const stateExists = await State.findById(data.state);
-                if(!stateExists){
-                    res.json({error: 'The state code is not invalid'});
+        if(data.state){  
+                const state = await State.findOne({name: data.state});
+                if(!state){
+                    res.json({error: 'The state is not invalid'});
                     return;
                 }
-                updates.state = data.state;
-            }else{
-                res.json({error: 'The state id is not invalid'});
-                return;
-            }
+                updates.state = state._id;
         }
         if(data.password){
             const passwordHash = (await bcrypt.hash(data.password, 10)).toString();
@@ -90,9 +96,8 @@ module.exports = {
         const categories = await Category.find();
 
         const data = [];
-        for(let cat of categories){
-             
-            const icon = utils.getIconsFullpath(cat.slug);
+        for(let cat of categories){          
+            const icon = getIconsFullpath(cat.slug);
             data.push({id: cat._id ,name: cat.name, slug: cat.slug, icon});
         }
         res.json({data});
@@ -109,3 +114,4 @@ module.exports = {
     }
     
 }
+

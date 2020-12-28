@@ -12,9 +12,6 @@ const userValidator = require('./validators/userValidator');
 
 const router = express.Router();
 
-router.get('/ping', authMiddleware.isUserLogged ,(req, res)=>{
-    res.json({pong: true});
-});
 
 router.post('/signin', authValidator.signIn, authController.signIn);
 router.post('/signup', authValidator.signUp, authController.signUp);

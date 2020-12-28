@@ -3,29 +3,30 @@ const uploader = require('express-fileupload');
 const uuid = require('uuid');
 
 const acceptedTypes = ['png', 'jpeg', 'bmp' ,'jpg'];
+const DEFAULT_IMAGE = 'default-image.png';
 
 module.exports = {
 
     uploadImage: async (req, res, next) =>{
         
-        if(!req.files.img || Object.keys(req.files).length === 0){
+        if(!req.files?.img || Object.keys(req.files).length === 0){
             next();
             return;
         }
         const imageList = [];
         try{
-            //Run a loop and save all images in case more than 1 image is sent 
+            //Run a loop and save all images in case there is more than one 
             if(Array.isArray(req.files.img)){
                 for(let file of req.files.img){    
-                    const filepath = await formatAndSaveFile(file);
-                    if(filepath){
-                        imageList.push({url: filepath, def: false});
+                    const filename = await formatAndSaveFile(file);
+                    if(filename){
+                        imageList.push({url: filename, def: false});
                     }
                 }
             }else{
-                const filepath = await formatAndSaveFile(req.files.img);
-                if(filepath){
-                    imageList.push({url: filepath, def: false});
+                const filename = await formatAndSaveFile(req.files.img);
+                if(filename){
+                    imageList.push({url: filename, def: true});
                 }
             }
 
@@ -49,10 +50,12 @@ const formatAndSaveFile = async (file) => {
         const filename = `${uuid.v4()}.${ext}`;
             
         const image = await jimp.read(file.data);
-        await image.resize(800, jimp.AUTO); // resize the image
+        await image.resize(854, 480); // resize the image
         await image.write(`./public/uploads/${filename}`); // save the image in the path
 
         return filename;
+    }else{
+        return DEFAULT_IMAGE;
     }
 }
 
