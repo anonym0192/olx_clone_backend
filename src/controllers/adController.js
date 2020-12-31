@@ -22,7 +22,7 @@ module.exports = {
             filter.state = s ? s._id : '';
         }
 
-        if(req.query.cat){
+        if(req.query.cat && req.query.cat !== 'all'){
             const c = await Category.findOne({slug: req.query.cat});
             filter.category = c ? c._id : '';
         }
@@ -106,7 +106,7 @@ module.exports = {
         const images = utils.getImagesFullpath(ad.images);
         
         const data = {
-            id :ad._id,
+            id: ad._id,
             title: ad.title,
             description: ad.description,
             price: ad.price,
