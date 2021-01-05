@@ -21,7 +21,7 @@ module.exports = {
             password: {
                 trim: true,
                 isLength: {options: {min: 3,max: 13}},
-                errorMessage: 'Password must have at least 2 characters',
+                errorMessage: 'Password must have at least 3 characters',
                 optional: true
             },
             state: {

@@ -1,18 +1,18 @@
-const jimp = require('jimp');
 const uploader = require('express-fileupload');
+const jimp = require('jimp');
 const uuid = require('uuid');
 
-const acceptedTypes = ['png', 'jpeg', 'bmp' ,'jpg'];
+const ACCEPTED_TYPES = ['png', 'jpeg', 'bmp' ,'jpg'];
 const DEFAULT_IMAGE = 'default-image.png';
 
 module.exports = {
 
     uploadImage: async (req, res, next) =>{
-        
         if(!req.files?.img || Object.keys(req.files).length === 0){
             next();
             return;
         }
+
         const imageList = [];
         try{
             //Run a loop and save all images in case there is more than one 
@@ -30,7 +30,7 @@ module.exports = {
                 }
             }
 
-            req.body.images = imageList;
+            req.body.images = imageList;  //Save the image object in the Requisition
             next();
 
         }catch(error){
@@ -50,15 +50,16 @@ const formatAndSaveFile = async (file) => {
         const filename = `${uuid.v4()}.${ext}`;
             
         const image = await jimp.read(file.data);
-        await image.resize(854, 480); // resize the image
+        await image.resize(735, 552); // resize the image
         await image.write(`./public/uploads/${filename}`); // save the image in the path
 
         return filename;
     }else{
-        return DEFAULT_IMAGE;
+        return DEFAULT_IMAGE; // Return a placeholder image in case the type ext is not valid
     }
 }
 
+//Return if a ext is accepted or not
 const isImageTypeAccepted = (ext)=>{
-    return acceptedTypes.includes(ext);
+    return ACCEPTED_TYPES.includes(ext);
 }

@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Category = require('../models/Category');
 const State = require('../models/State');
 const mongoose = require('mongoose');
-const utils = require('../utils');
+const {getImagesFullpath} = require('../utils');
 
 module.exports = {
 
@@ -62,7 +62,7 @@ module.exports = {
                 console.error(error.message);
             }
 
-            const images = utils.getImagesFullpath(ad.images);
+            const images = getImagesFullpath(ad.images);
             adList.push({
                     id: ad.id,
                     title: ad.title,
@@ -103,7 +103,27 @@ module.exports = {
         const state = await State.findById(ad.state);
         const category = await Category.findById(ad.category);
 
-        const images = utils.getImagesFullpath(ad.images);
+        const images = getImagesFullpath(ad.images);
+
+        const othersList = [];
+        const relatedAds =  await Ad.find({user: user._id, _id: {$ne: ad._id}});
+
+        for(let other of relatedAds){
+     
+            othersList.push({
+                id: other._id,
+                title: other.title,
+                description: other.description,
+                price: other.price,
+                priceNegotiable: other.priceNegotiable,
+                views: other.views,
+                images: getImagesFullpath(other.images),
+                dateCreated: other.dateCreated,
+                category: other.category,
+                user: other.user, 
+                state: other.state
+            });
+        }
         
         const data = {
             id: ad._id,
@@ -117,9 +137,8 @@ module.exports = {
             active: ad.active,
             category: category?.name,
             state: state?.name,
-            user: user?.email
-
-
+            user: user?.email,
+            others: othersList
         };
         
         if(mongoose.Types.ObjectId.isValid(ad.user)){
@@ -193,6 +212,7 @@ module.exports = {
    
         const ad = await Ad.findById(req.body.id);
     
+        // test if the ad belongs to the logged user
         if(!ad || (userId !== ad.user)){
             res.json({error: 'Ad id is not valid!'});
             return;

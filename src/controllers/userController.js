@@ -50,7 +50,6 @@ module.exports = {
         const errors = validationResult(req).formatWith(errorFormatter);
 
         if(!errors.isEmpty()){
-            console.log(errors);
             res.json({error: errors.array()});
             return;
         }
